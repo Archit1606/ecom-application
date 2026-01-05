@@ -1,0 +1,99 @@
+package com.app.ecom.service;
+
+import com.app.ecom.dto.AddressDto;
+import com.app.ecom.dto.UserRequest;
+import com.app.ecom.dto.UserResponse;
+import com.app.ecom.model.Address;
+import com.app.ecom.model.User;
+import com.app.ecom.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class UserService {
+
+    private final UserRepository userRepository;
+
+    public List<UserResponse> fetchAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::mapToUserResponse)
+                .toList();
+    }
+
+    public void addUser(UserRequest userRequest) {
+        User user = new User();
+        updateUserFromRequest(user, userRequest);
+        userRepository.save(user);
+    }
+
+    public Optional<UserResponse> fetchAUsers(Long id) {
+        return userRepository.findById(id)
+                .map(this::mapToUserResponse);
+    }
+
+    public boolean updateUser(Long id, UserRequest updatedUserRequest) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    updateUserFromRequest(user, updatedUserRequest);
+                    userRepository.save(user);
+                    return true;
+                }).orElse(false);
+    }
+
+    // ================== HELPER METHODS ==================
+
+    private void updateUserFromRequest(User user, UserRequest userRequest) {
+
+        user.setFirstName(userRequest.getFirstName());
+        user.setLastName(userRequest.getLastName());
+        user.setEmail(userRequest.getEmail());
+        user.setPhoneNumber(userRequest.getPhoneNumber());
+
+        if (userRequest.getAddress() != null) {
+
+            Address address = user.getAddress();
+            if (address == null) {
+                address = new Address();   // NEW address
+            }
+
+            AddressDto dto = userRequest.getAddress();
+            address.setStreet(dto.getStreet());
+            address.setCity(dto.getCity());
+            address.setState(dto.getState());
+            address.setZipCode(dto.getZipCode());
+            address.setCountry(dto.getCountry());
+
+            user.setAddress(address);
+        }
+    }
+
+    private UserResponse mapToUserResponse(User user) {
+
+        UserResponse response = new UserResponse();
+        response.setId(user.getId().toString());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setEmail(user.getEmail());
+        response.setPhoneNumber(user.getPhoneNumber());
+        response.setRole(user.getRole());
+
+        if (user.getAddress() != null) {
+            AddressDto addressDto = new AddressDto();
+            addressDto.setStreet(user.getAddress().getStreet());
+            addressDto.setCity(user.getAddress().getCity());
+            addressDto.setState(user.getAddress().getState());
+            addressDto.setZipCode(user.getAddress().getZipCode());
+            addressDto.setCountry(user.getAddress().getCountry());
+            response.setAddress(addressDto);
+        }
+
+        return response;
+    }
+}
