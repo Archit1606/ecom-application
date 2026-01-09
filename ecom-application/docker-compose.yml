@@ -4,13 +4,14 @@ services:
     environment:
       POSTGRES_USER: ecommerce_user
       POSTGRES_PASSWORD: securepassword
+      POSTGRES_DB: ecom_db
       PGDATA: /data/postgres
     volumes:
       - postgres:/data/postgres
     ports:
       - "5432:5432"
     networks:
-      - postgres
+      - backend
     restart: unless-stopped
 
   pgadmin:
@@ -25,7 +26,18 @@ services:
     ports:
       - "8081:80"
     networks:
+      - backend
+    restart: unless-stopped
+
+  ecom-application:
+    build: .
+    container_name: ecom_application
+    depends_on:
       - postgres
+    ports:
+      - "8082:8081"
+    networks:
+      - backend
     restart: unless-stopped
 
 volumes:
@@ -33,5 +45,5 @@ volumes:
   pgadmin:
 
 networks:
-  postgres:
+  backend:
     driver: bridge
