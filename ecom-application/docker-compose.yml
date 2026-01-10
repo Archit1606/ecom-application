@@ -3,11 +3,11 @@ services:
     image: postgres:14
     container_name: postgres
     environment:
-      POSTGRES_DB: ecom_db
       POSTGRES_USER: ecommerce_user
       POSTGRES_PASSWORD: securepassword
     volumes:
       - postgres:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
     networks:
