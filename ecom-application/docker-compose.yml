@@ -1,48 +1,63 @@
 services:
   postgres:
     image: postgres:14
+    container_name: postgres
     environment:
+      POSTGRES_DB: ecom_db
       POSTGRES_USER: ecommerce_user
       POSTGRES_PASSWORD: securepassword
-      POSTGRES_DB: ecom_db
-      PGDATA: /data/postgres
     volumes:
-      - postgres:/data/postgres
+      - postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
       - backend
-    restart: unless-stopped
 
   pgadmin:
-    container_name: pgadmin_container
     image: dpage/pgadmin4
+    container_name: pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    volumes:
-      - pgadmin:/var/lib/pgadmin
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "8081:80"
-    networks:
-      - backend
-    restart: unless-stopped
-
-  ecom-application:
-    build: .
-    container_name: ecom_application
     depends_on:
       - postgres
-    ports:
-      - "8082:8081"
     networks:
       - backend
-    restart: unless-stopped
+
+  user-service:
+    build: ./user/user
+    container_name: user-service
+    ports:
+      - "8091:8091"
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
+  product-service:
+    build: ./product/product
+    container_name: product-service
+    ports:
+      - "8092:8092"
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
+  order-service:
+    build: ./order/order
+    container_name: order-service
+    ports:
+      - "8093:8093"
+    depends_on:
+      - postgres
+    networks:
+      - backend
 
 volumes:
   postgres:
-  pgadmin:
 
 networks:
   backend:
