@@ -15,7 +15,6 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class UserService {
 
     private final UserRepository userRepository;
@@ -33,18 +32,21 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public Optional<UserResponse> fetchAUsers(Long id) {
+    // ✅ String id
+    public Optional<UserResponse> fetchAUser(String id) {
         return userRepository.findById(id)
                 .map(this::mapToUserResponse);
     }
 
-    public boolean updateUser(Long id, UserRequest updatedUserRequest) {
+    // ✅ String id
+    public boolean updateUser(String id, UserRequest updatedUserRequest) {
         return userRepository.findById(id)
                 .map(user -> {
                     updateUserFromRequest(user, updatedUserRequest);
                     userRepository.save(user);
                     return true;
-                }).orElse(false);
+                })
+                .orElse(false);
     }
 
     // ================== HELPER METHODS ==================
@@ -60,7 +62,7 @@ public class UserService {
 
             Address address = user.getAddress();
             if (address == null) {
-                address = new Address();   // NEW address
+                address = new Address();
             }
 
             AddressDto dto = userRequest.getAddress();
@@ -77,7 +79,7 @@ public class UserService {
     private UserResponse mapToUserResponse(User user) {
 
         UserResponse response = new UserResponse();
-        response.setId(user.getId().toString());
+        response.setId(user.getId()); // String id
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
         response.setEmail(user.getEmail());
