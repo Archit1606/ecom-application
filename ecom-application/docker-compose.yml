@@ -36,6 +36,30 @@ services:
     networks:
       - backend
 
+  # =========================
+  # EUREKA SERVER
+  eureka-server:
+    build: ./eureka/eureka
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - backend
+
+  # =========================
+  # CONFIG SERVER (ADD THIS)
+  config-server:
+    build: ./configserver/configserver
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    depends_on:
+      - eureka-server
+    networks:
+      - backend
+
+  # =========================
+  # USER SERVICE
   user-service:
     build: ./user/user
     container_name: user-service
@@ -43,9 +67,13 @@ services:
       - "8091:8091"
     depends_on:
       - mongodb
+      - eureka-server
+      - config-server
     networks:
       - backend
 
+  # =========================
+  # PRODUCT SERVICE
   product-service:
     build: ./product/product
     container_name: product-service
@@ -53,9 +81,13 @@ services:
       - "8092:8092"
     depends_on:
       - postgres
+      - eureka-server
+      - config-server
     networks:
       - backend
 
+  # =========================
+  # ORDER SERVICE
   order-service:
     build: ./order/order
     container_name: order-service
@@ -63,6 +95,8 @@ services:
       - "8093:8093"
     depends_on:
       - postgres
+      - eureka-server
+      - config-server
     networks:
       - backend
 
